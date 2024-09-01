@@ -1,0 +1,27 @@
+# Build artifacts
+/build/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+/projet
+
+# Logs / runtime outputs
+output.log
+/tmp/
+
+# Editor / OS
+.DS_Store
+__MACOSX/
+._*
+.vscode/
+.idea/
+
+# Backup files
+*~
+*.orig
+*.bak
+*.swp
+*.code-workspace
