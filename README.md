@@ -36,8 +36,10 @@ make test
 
 ## What you’ll see
 
-- A GTK window with a drawing area showing the world state.
-- Controls to load an input file, step the simulation, run, save, etc.
+![GUI](docs/screenshots/gui.png)
+
+- Green dots = algae, blue polylines = corals, red circles = scavengers.
+- Left panel: controls (open / save / step / run / stop) and live entity counts.
 
 ---
 
@@ -182,6 +184,11 @@ Run all inputs:
 make test
 # or
 ./scripts/run_all_tests.sh
+```
+
+Expected output:
+```
+52 test files, OK: 52, FAIL: 0
 ```
 
 Outputs (`stdout` / `stderr`) are stored under `tmp/` (ignored by git).
