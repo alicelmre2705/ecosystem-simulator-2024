@@ -1,15 +1,10 @@
 # MicroReef — Algae / Coral / Scavenger Simulation (C++17 + GTKmm 4)
 
-A small **2D ecosystem simulation** (“drop of water”) with three lifeforms:
-- **Algae**
-- **Corals**
-- **Scavengers**
+![CI](https://github.com/alicelmre2705/ecosystem-simulator-2024/actions/workflows/ci.yml/badge.svg)
 
-The simulation comes with a **GTKmm 4 GUI** and a set of **input files** (`tests/inputs/t*.txt`) that initialize the world.
+A small **2D ecosystem simulation** ("drop of water") with three lifeforms — **algae**, **corals**, and **scavengers** — rendered in real time through a **GTKmm 4 GUI**.
 
-The original assignment statement is in French: `docs/00_Instructions.pdf`.
-
-Additional internal notes were translated to English and are available in `docs/`. The original French versions are preserved in `docs/fr/`.
+The original assignment is in French: [`docs/00_Instructions.pdf`](docs/00_Instructions.pdf).
 
 ---
 
@@ -27,19 +22,69 @@ make
 ./projet tests/inputs/t27.txt
 ```
 
-4) **Run the full input sweep (headless, no GUI)**
+4) **Run the full test sweep (headless, no GUI)**
 ```bash
 make test
 ```
 
 ---
 
-## What you’ll see
+## What you'll see
 
 ![GUI](docs/screenshots/gui.png)
 
 - Green dots = algae, blue polylines = corals, red circles = scavengers.
 - Left panel: controls (open / save / step / run / stop) and live entity counts.
+
+---
+
+## Architecture
+
+| Layer | Files | Role |
+|-------|-------|------|
+| **Model** | `simulation.{h,cc}`, `lifeform.{h,cc}` | Simulation loop, entity logic |
+| **View** | `gui.{h,cc}`, `graphic.{h,cc}` | GTKmm 4 window, Cairo 2D rendering |
+| **Geometry** | `shape.{h,cc}` | Segment intersection, collision detection |
+| **Entry point** | `projet.cc` | CLI arg parsing, app bootstrap |
+
+Key design choices:
+- **Polymorphism** — `Lifeform` base class with `Algue`, `Corail`, `Scavenger` derived classes
+- **Ownership** — `std::unique_ptr<Corail>` for safe memory management, no manual `delete`
+- **Headless mode** — env var `MICRORECIF_HEADLESS=1` skips the GUI for CI and batch runs
+
+---
+
+## Tests (52 / 52 passing)
+
+The repository provides a **headless mode** so batch execution doesn't open a GTK window:
+
+```bash
+make test
+# or
+./scripts/run_all_tests.sh
+```
+
+Output:
+```
+[OK]   t00.txt
+[OK]   t01.txt
+...
+[OK]   t46.txt
+
+Summary: 52 test files
+  OK/WARN: 52
+  WARN (non-zero): 0
+  FAIL (crash/signal): 0
+```
+
+You can also run a single input in headless mode:
+```bash
+scripts/run.sh tests/inputs/t27.txt
+```
+
+Logs are stored under `tmp/` (ignored by git). More details: [`tests/README.md`](tests/README.md).
+
+> If scripts are not executable after cloning: `chmod +x scripts/*.sh`
 
 ---
 
@@ -50,8 +95,7 @@ make test
 ├── src/                  # C++ sources
 ├── include/              # C++ headers
 ├── tests/inputs/         # Input test files (t*.txt)
-├── tests/README.md       # How to run inputs/tests
-├── docs/                 # Assignment PDF (FR) + English notes (FR originals in docs/fr/)
+├── docs/                 # Assignment PDF + design notes
 ├── scripts/              # Helper scripts (run, batch tests)
 └── .github/workflows/    # CI (Ubuntu)
 ```
@@ -93,7 +137,7 @@ brew install pkg-config make gcc gtkmm4
 pkg-config --modversion gtkmm-4.0
 ```
 
-> **Note (macOS)**: if `make` behaves oddly, try Homebrew’s `gmake`:
+> **Note (macOS)**: if `make` behaves oddly, try Homebrew's `gmake`:
 ```bash
 gmake clean && gmake
 ```
@@ -121,7 +165,7 @@ GTKmm 4 on native Windows can be painful to set up reliably. The recommended pat
 2) In the Ubuntu terminal, run the Linux install commands above.
 3) Build and run from WSL.
 
-> GUI note: for a GTK GUI under WSL, you’ll need an X server (Windows 10) or WSLg (Windows 11). If you only want to validate inputs, `make test` runs in headless mode.
+> GUI note: for a GTK GUI under WSL, you'll need an X server (Windows 10) or WSLg (Windows 11). If you only want to validate inputs, `make test` runs in headless mode.
 
 #### Option B (advanced): MSYS2
 Possible, but toolchain/package names change often. Prefer WSL2 unless you already know MSYS2 + GTKmm.
@@ -166,50 +210,8 @@ Behavior:
 
 ---
 
-## Tests / batch input sweep (headless)
-
-Because the program normally opens a GTK window, batch execution would block.
-For CI and quick regression checks, the repository provides an **optional headless mode**:
-
-```bash
-export MICRORECIF_HEADLESS=1
-./projet tests/inputs/t27.txt
-```
-
-- This **does not change default behavior**.
-- It simply avoids opening the GUI when the environment variable is set.
-
-Run all inputs:
-```bash
-make test
-# or
-./scripts/run_all_tests.sh
-```
-
-Expected output:
-```
-52 test files, OK: 52, FAIL: 0
-```
-
-Outputs (`stdout` / `stderr`) are stored under `tmp/` (ignored by git).
-
-More details: `tests/README.md`.
-
----
-
-## Scripts
-
-- `scripts/run.sh [path/to/input.txt]` — runs a single input in headless mode
-- `scripts/run_all_tests.sh` — runs all `tests/inputs/t*.txt` in headless mode
-
-If you cloned this repo and scripts are not executable:
-```bash
-chmod +x scripts/*.sh
-```
-
----
-
-## Troubleshooting
+<details>
+<summary><strong>Troubleshooting</strong></summary>
 
 ### `Error: gtkmm-4.0 not found via pkg-config`
 - macOS: `brew install pkg-config gtkmm4`
@@ -230,11 +232,13 @@ Install it:
 - Ensure you are at the repository root (where the `Makefile` is)
 
 ### macOS: `ld: library not found` / runtime library issues
-Homebrew libraries may require your terminal to see Homebrew’s paths. Try:
+Homebrew libraries may require your terminal to see Homebrew's paths. Try:
 ```bash
 brew doctor
 ```
 Then open a new terminal and rebuild.
+
+</details>
 
 ---
 
